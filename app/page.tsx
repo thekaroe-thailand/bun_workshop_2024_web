@@ -34,7 +34,13 @@ export default function Home() {
 
       if (response.data.token !== undefined) {
         localStorage.setItem(config.tokenKey, response.data.token);
-        router.push('/dashboard');
+        router.push('/backoffice/dashboard');
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'error',
+          text: 'Invalid username or password'
+        });
       }
     } catch (error: any) {
       Swal.fire({
