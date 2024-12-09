@@ -89,12 +89,7 @@ export default function Page() {
 
     const handleDelete = async (id: string) => {
         try {
-            const button = await Swal.fire({
-                icon: 'warning',
-                title: 'ยืนยันการลบ',
-                text: 'คุณต้องการลบข้อมูลนี้หรือไม่',
-                showCancelButton: true,
-            });
+            const button = await config.confirmDialog();
 
             if (button.isConfirmed) {
                 await axios.delete(config.apiUrl + '/api/device/remove/' + id);
