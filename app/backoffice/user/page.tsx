@@ -71,7 +71,7 @@ export default function Page() {
                 username: username,
                 password: password,
                 level: level,
-                sectionId: sectionId,
+                sectionId: parseInt(sectionId + ""),
             }
 
             if (id == '') {
@@ -104,6 +104,13 @@ export default function Page() {
         setConfirmPassword('');
         setLevel(user.level);
         setShowModal(true);
+
+        const departmentId = user?.section?.department?.id;
+        setDepartmentId(departmentId);
+        fetchSections(departmentId);
+
+        const sectionId = user?.section?.id;
+        setSectionId(sectionId);
     }
 
     const handleDelete = async (id: string) => {
@@ -137,6 +144,8 @@ export default function Page() {
                         <tr>
                             <th>Username</th>
                             <th style={{ width: '100px' }}>Level</th>
+                            <th>แผนก</th>
+                            <th>ฝ่าย</th>
                             <th className="text-center" style={{ width: '220px' }}></th>
                         </tr>
                     </thead>
@@ -145,7 +154,9 @@ export default function Page() {
                             <tr key={user.id}>
                                 <td>{user.username}</td>
                                 <td>{user.level}</td>
-                                <td className="text-center">
+                                <td>{user?.section?.department?.name}</td>
+                                <td>{user?.section?.name}</td>
+                                <td className="text-center" style={{ width: '220px' }}>
                                     <button className="btn-edit"
                                         onClick={() => handleEdit(user)}>
                                         <i className="fa-solid fa-edit mr-2"></i>
