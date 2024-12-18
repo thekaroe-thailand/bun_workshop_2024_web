@@ -79,7 +79,13 @@ export default function Page() {
         }
 
         try {
-            await axios.post(`${config.apiUrl}/api/repairRecord/create`, payload);
+            if (id == 0) {
+                await axios.post(`${config.apiUrl}/api/repairRecord/create`, payload);
+            } else {
+                await axios.put(`${config.apiUrl}/api/repairRecord/update/${id}`, payload);
+                setId(0);
+            }
+
             Swal.fire({
                 icon: 'success',
                 title: 'บันทึกข้อมูล',
@@ -118,6 +124,7 @@ export default function Page() {
     }
 
     const handleEdit = (repairRecord: any) => {
+        setId(repairRecord.id);
         setCustomerName(repairRecord.customerName);
         setCustomerPhone(repairRecord.customerPhone);
 
@@ -131,6 +138,15 @@ export default function Page() {
         setExpireDate(dayjs(repairRecord.expireDate).format('YYYY-MM-DD'));
         setProblem(repairRecord.problem);
         openModal();
+    }
+
+    const handleDelete = async (id: number) => {
+        const button = await config.confirmDialog();
+
+        if (button.isConfirmed) {
+            await axios.delete(`${config.apiUrl}/api/repairRecord/remove/${id}`);
+            fetchRepairRecords();
+        }
     }
 
     return (
@@ -153,7 +169,7 @@ export default function Page() {
                                 <th>วันที่รับซ่อม</th>
                                 <th>วันที่ซ่อมเสร็จ</th>
                                 <th>สถานะ</th>
-                                <th style={{ width: '150px' }}></th>
+                                <th style={{ width: '215px' }}></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -170,6 +186,10 @@ export default function Page() {
                                         <button className="btn-edit" onClick={() => handleEdit(repairRecord)}>
                                             <i className="fa-solid fa-edit mr-3"></i>
                                             แก้ไข
+                                        </button>
+                                        <button className="btn-delete" onClick={() => handleDelete(repairRecord.id)}>
+                                            <i className="fa-solid fa-trash mr-3"></i>
+                                            ลบ
                                         </button>
                                     </td>
                                 </tr>
