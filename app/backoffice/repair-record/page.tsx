@@ -23,6 +23,14 @@ export default function Page() {
     const [expireDate, setExpireDate] = useState(''); // here
     const [id, setId] = useState(0);
 
+    //
+    // รับเครื่อง
+    //
+    const [showModalReceive, setShowModalReceive] = useState(false);
+    const [receiveCustomerName, setReceiveCustomerName] = useState('');
+    const [receiveAmount, setReceiveAmount] = useState(0);
+    const [receiveId, setReceiveId] = useState(0);
+
     useEffect(() => {
         fetchDevices();
         fetchRepairRecords();
@@ -149,6 +157,30 @@ export default function Page() {
         }
     }
 
+    const openModalReceive = (repairRecord: any) => {
+        setShowModalReceive(true);
+        setReceiveCustomerName(repairRecord.customerName);
+        setReceiveAmount(0);
+        setReceiveId(repairRecord.id);
+    }
+
+    const closeModalReceive = () => {
+        setShowModalReceive(false);
+        setReceiveId(0); // clear id
+    }
+
+    const handleReceive = async () => {
+        const payload = {
+            id: receiveId,
+            amount: receiveAmount
+        }
+
+        await axios.put(`${config.apiUrl}/api/repairRecord/receive`, payload);
+
+        fetchRepairRecords();
+        closeModalReceive();
+    }
+
     return (
         <>
             <div className="card">
@@ -169,7 +201,8 @@ export default function Page() {
                                 <th>วันที่รับซ่อม</th>
                                 <th>วันที่ซ่อมเสร็จ</th>
                                 <th>สถานะ</th>
-                                <th style={{ width: '215px' }}></th>
+                                <th className="text-right" style={{ paddingRight: '4px' }}>ค่าบริการ</th>
+                                <th style={{ width: '330px' }}></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -182,7 +215,12 @@ export default function Page() {
                                     <td>{dayjs(repairRecord.createdAt).format('DD/MM/YYYY')}</td>
                                     <td>{repairRecord.endJobDate ? dayjs(repairRecord.endJobDate).format('DD/MM/YYYY') : '-'}</td>
                                     <td>{getStatusName(repairRecord.status)}</td>
+                                    <td className="text-right">{repairRecord.amount?.toLocaleString('th-TH')}</td>
                                     <td>
+                                        <button className="btn-edit" onClick={() => openModalReceive(repairRecord)}>
+                                            <i className="fa-solid fa-check mr-3"></i>
+                                            รับเครื่อง
+                                        </button>
                                         <button className="btn-edit" onClick={() => handleEdit(repairRecord)}>
                                             <i className="fa-solid fa-edit mr-3"></i>
                                             แก้ไข
@@ -268,6 +306,30 @@ export default function Page() {
                     <i className="fa-solid fa-check mr-3"></i>
                     บันทึก
                 </button>
+            </Modal>
+
+            <Modal title="รับเครื่อง" isOpen={showModalReceive}
+                onClose={() => closeModalReceive()} size="xl">
+                <div className='flex gap-4'>
+                    <div className='w-1/2'>
+                        <div>ชื่อลูกค้า</div>
+                        <input type="text" className="form-control w-full disabled" readOnly
+                            value={receiveCustomerName} />
+                    </div>
+                    <div className='w-1/2'>
+                        <div>ค่าบริการ</div>
+                        <input type="text" className="form-control w-full text-right"
+                            value={receiveAmount}
+                            onChange={(e) => setReceiveAmount(Number(e.target.value))} />
+                    </div>
+                </div>
+
+                <div>
+                    <button className='btn-primary mt-4' onClick={handleReceive}>
+                        <i className="fa-solid fa-check mr-3"></i>
+                        บันทึก
+                    </button>
+                </div>
             </Modal>
         </>
     );
