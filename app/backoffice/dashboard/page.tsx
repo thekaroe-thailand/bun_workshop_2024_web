@@ -20,6 +20,7 @@ export default function Page() {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYearChartIncomePerMonth, setSelectedYearChartIncomePerMonth] = useState(new Date().getFullYear());
+    const [listIncomePerMonth, setListIncomePerMonth] = useState([]);
 
     useEffect(() => {
         // year 5 years ago to now
@@ -35,6 +36,11 @@ export default function Page() {
     }, []);
 
     const fetchData = async () => {
+        fetchDataIncomePerDay();
+        fetchDataChartIncomePerMonth(); // เรียกให้ chart ของ income per month แสดงข้อมูล
+    };
+
+    const fetchDataIncomePerDay = async () => {
         const params = {
             year: selectedYear,
             month: selectedMonth + 1
@@ -55,13 +61,12 @@ export default function Page() {
         }
 
         renderChartIncomePerDays(listIncomePerDays);
-        renderChartIncomePerMonth();
         renderChartPie(
             response.data.totalRepairRecordComplete,
             response.data.totalRepairRecordNotComplete,
             response.data.totalRepairRecord
         );
-    };
+    }
 
     const renderChartIncomePerDays = (data: number[]) => {
         const options = {
@@ -72,12 +77,14 @@ export default function Page() {
             },
         };
         const chartIncomePerDays = document.getElementById('chartIncomePerDays');
-        const chart = new Chart(chartIncomePerDays, options);
-        chart.render();
+
+        if (chartIncomePerDays) {
+            const chart = new Chart(chartIncomePerDays, options);
+            chart.render();
+        }
     };
 
-    const renderChartIncomePerMonth = () => {
-        const data = Array.from({ length: 12 }, () => Math.floor(Math.random() * 10000));
+    const renderChartIncomePerMonth = (data: number[]) => {
         const options = {
             chart: { type: 'bar', height: 300, background: 'white' },
             series: [{ data: data }],
@@ -89,8 +96,11 @@ export default function Page() {
             },
         };
         const chartIncomePerMonth = document.getElementById('chartIncomePerMonth');
-        const chart = new Chart(chartIncomePerMonth, options);
-        chart.render();
+
+        if (chartIncomePerMonth) {
+            const chart = new Chart(chartIncomePerMonth, options);
+            chart.render();
+        }
     };
 
     const renderChartPie = (
@@ -108,6 +118,32 @@ export default function Page() {
         const chart = new Chart(chartPie, options);
         chart.render();
     };
+
+    const fetchDataChartIncomePerMonth = async () => {
+        try {
+            const params = {
+                year: selectedYearChartIncomePerMonth,
+            }
+            const response = await axios.get(`${config.apiUrl}/api/repairRecord/incomePerMonth`, {
+                params: params
+            });
+
+            let listIncomePerMonth = [];
+
+            for (let i = 0; i < response.data.length; i++) {
+                let item = response.data[i].amount;
+                listIncomePerMonth.push(item);
+            }
+
+            renderChartIncomePerMonth(listIncomePerMonth);
+        } catch (err: any) {
+            Swal.fire({
+                icon: 'error',
+                title: 'การดึงข้อมูลล้มเหลว',
+                text: err.message
+            });
+        }
+    }
 
     return (
         <>
@@ -150,7 +186,7 @@ export default function Page() {
                     </select>
                 </div>
                 <div className="w-[200px] ms-1">
-                    <button className="btn" style={{ paddingRight: '20px', paddingLeft: '10px' }} onClick={fetchData}>
+                    <button className="btn" style={{ paddingRight: '20px', paddingLeft: '10px' }} onClick={fetchDataIncomePerDay}>
                         <i className="fa-solid fa-magnifying-glass ms-3 pe-3"></i>
                         แสดงข้อมูล
                     </button>
@@ -165,7 +201,7 @@ export default function Page() {
                     <option key={index} value={year}>{year}</option>
                 ))}
             </select>
-            <button className="btn ms-2" style={{ paddingRight: '20px', paddingLeft: '10px' }}>
+            <button className="btn ms-2" style={{ paddingRight: '20px', paddingLeft: '10px' }} onClick={fetchDataChartIncomePerMonth}>
                 <i className="fa-solid fa-magnifying-glass ms-3 pe-3"></i>
                 แสดงข้อมูล
             </button>
